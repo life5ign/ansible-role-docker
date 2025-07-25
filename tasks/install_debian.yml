@@ -24,12 +24,75 @@
     codename: "{{ ansible_lsb['codename'] }}"
     update_cache: yes
 
-- name: Debian | Installing {{ docker_apps }}
+- name: verify version and set package installation candidate when a specific version other than latest is defined
+  when:
+    ( docker_ce_version != 'latest' ) and
+    ( docker_apps_desired_state != 'latest' )
+  block:
+    - name: get versions for docker ce
+      # see official docker installation instructions for apt/debian: the version string
+      # comes from the docker-ce and the docker-ce-cli packages; they are the only ones that need it
+      # to be specified when installing; the docker-ce-cli package version must match the docker-ce package version
+      ansible.builtin.shell:
+        cmd: "apt-cache madison docker-ce | awk '{print $3}'"
+      register: docker_versions
+
+#    - name: debug docker versions
+#      ansible.builtin.debug:
+#        var: docker_versions.stdout_lines
+      
+    - name: assert docker ce version
+      ansible.builtin.assert:
+        that:
+          - docker_ce_version in docker_versions.stdout_lines
+        fail_msg: "Expected Docker CE version {{ docker_ce_version }} not found in apt cache."
+
+    - name: set package installation candidates
+      ansible.builtin.set_fact:
+        docker_packages:
+          - "docker-ce={{ docker_ce_version }}"
+          - "docker-ce-cli={{ docker_ce_version }}"
+          - "docker-ce-rootless-extras={{ docker_ce_version }}"
+          - "containerd.io"
+
+- name: Set package installation candidates when no specific version is defined or user wants latest
+  when:
+    (docker_ce_version == 'latest') or
+    (docker_apps_desired_state == 'latest')
+  block:
+    - name: set package installation candidates
+      ansible.builtin.set_fact:
+        docker_packages:
+          - "docker-ce"
+          - "docker-ce-cli"
+          - "docker-ce-rootless-extras"
+          - "containerd.io"
+
+#- name: debug docker packages
+#  ansible.builtin.debug:
+#    var: docker_packages
+
+- name: Debian | Installing {{ docker_packages }}
   become: true
   ansible.builtin.apt:
-    name: "{{ docker_apps }}"
+    name: "{{ item }}"
     state: "{{ docker_apps_desired_state }}"
     force_apt_get: yes
+    allow_downgrade: yes
+  loop: "{{ docker_packages }}"
+  notify:
+    - "set_{{ docker_service_name }}_service_state"
+    - "set_{{ docker_service_name }}_service_boot_state"
+
+- name: Debian | Installing docker plugins {{ docker_plugins }}
+  when : docker_install_plugins and docker_plugins | length > 0
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    force_apt_get: yes
+    allow_downgrade: yes
+  loop: "{{ docker_plugins }}"
   notify:
     - "set_{{ docker_service_name }}_service_state"
     - "set_{{ docker_service_name }}_service_boot_state"

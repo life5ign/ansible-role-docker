@@ -23,10 +23,11 @@ docker_architecture_map:
   aarch64: arm64
   32-bit: "386"
   64-bit: amd64
-docker_apps:
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
+docker_install_plugins: true
+docker_ce_version: latest
+docker_plugins:
+  - docker-buildx-plugin
+  - docker-compose-plugin
 docker_apps_desired_state: present
 docker_service_name: docker
 docker_service_desired_state: restarted
@@ -71,7 +72,9 @@ docker_repo_debian_desired_state: present
 Variable                             | Description
 ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 docker_architecture_map              | Variable for system architecture types.
-docker_apps                          | Name of docker application packages require to be installed i.e. `docker-ce, docker-ce-cli, containerd.io`
+docker_ce_version                    | Version of the Docker CE Engine to install; either "latest" or a version string from a package manager, e.g. `apt-cache madison docker-ce` for output versions for apt
+docker_install_plugins               | Whether or no to install plugins
+docker_plugins                       | Name of docker application plugins e.g. `docker-compose-plugin`
 docker_apps_desired_state            | State of the docker_apps packages (i.e. `docker-ce, docker-ce-cli, containerd.io` packages). Whether to install, verify if available or to uninstall (i.e. ansible apt module values: `present`, `latest`, or `absent`)
 docker_service_name                  | Default service name for Docker.
 docker_service_desired_state         | Desired state for Docker service.

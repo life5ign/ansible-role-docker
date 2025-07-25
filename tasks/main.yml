@@ -1,6 +1,29 @@
 ---
 # tasks file for docker
 
+- name: make sure user has not specified a specific version and wants latest
+  ansible.builtin.assert:
+    that:
+      - docker_apps_desired_state != 'latest'
+    fail_msg: |
+      You have specified a specific version for docker_ce_version,
+      as well as docker_apps_desired_state as 'latest'.
+      Please either set docker_ce_version to 'latest' or
+      docker_apps_desired_state to something other than 'latest'.
+  when:
+    docker_ce_version != 'latest'
+
+- name: make sure user specified latest apps version state if they specified latest version
+  ansible.builtin.assert:
+    that:
+      - docker_apps_desired_state == 'latest'
+    fail_msg: |
+      You have specified a the latest version for docker_ce_version,
+      but not the latest version for docker_apps_desired_state.
+      Please set docker_apps_desired_state to 'latest' as well.
+  when:
+    docker_ce_version == 'latest'
+
 - name: Import install_debian.yml if OS distribution is Debian
   ansible.builtin.import_tasks: user_group.yml
   when: >
