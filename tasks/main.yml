@@ -1,6 +1,13 @@
 ---
 # tasks file for docker
 
+- name: If the user specified a docker version, set the docker apps version to present
+  # this is because we set the docker apps version to latest by default, and we want to avoid
+  # the user having to specify the apps version if they are not using the latest docker version
+  ansible.builtin.set_fact:
+    docker_apps_desired_state: present
+  when: docker_ce_version is defined and docker_ce_version != 'latest'
+
 - name: make sure user has not specified a specific version and wants latest
   ansible.builtin.assert:
     that:

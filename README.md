@@ -75,7 +75,7 @@ docker_architecture_map              | Variable for system architecture types.
 docker_ce_version                    | Version of the Docker CE Engine to install; either "latest" or a version string from a package manager, e.g. `apt-cache madison docker-ce` for output versions for apt
 docker_install_plugins               | Whether or no to install plugins
 docker_plugins                       | Name of docker application plugins e.g. `docker-compose-plugin`
-docker_apps_desired_state            | State of the docker_apps packages (i.e. `docker-ce, docker-ce-cli, containerd.io` packages). Whether to install, verify if available or to uninstall (i.e. ansible apt module values: `present`, `latest`, or `absent`)
+docker_apps_desired_state            | State of the docker_apps packages (i.e. `docker-ce, docker-ce-cli, containerd.io` packages). Whether to install, verify if available or to uninstall (i.e. ansible apt module values: `latest`, `present`, or `absent`)
 docker_service_name                  | Default service name for Docker.
 docker_service_desired_state         | Desired state for Docker service.
 docker_service_desired_boot_enabled  | Desired enabled/disabled state for Docker service.
